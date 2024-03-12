@@ -13,6 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
     foreach(const QSerialPortInfo &port, ports) {
         ui->comboBox_SerialPorts->addItem(port.portName());
     }
+    connect(&m_comThread,SIGNAL(sendDataFrame(ld2410_frame)),this,SLOT(frameReceived(ld2410_frame)));
 }
 
 MainWindow::~MainWindow()
@@ -23,40 +24,36 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_pushButton_Connect_clicked()
 {
-    if (m_DeviceConnected)
+    QString currentPortName = ui->comboBox_SerialPorts->currentText();
+    if (!m_DeviceConnected)
     {
-        if (m_Port.isOpen())
+        bool retval = m_comThread.openPort("/dev/" + currentPortName);
+        if (retval)
+        {
+            m_comThread.start();
+            m_DeviceConnected = true;
+            ui->pushButton_Connect->setText("DISCONNECT");
+        }
+        else
         {
             m_comThread.stop();
-            m_Port.close();
             m_DeviceConnected = false;
             ui->pushButton_Connect->setText("CONNECT");
-            qDebug() << "Serial Port Closed succesfully";
         }
     }
     else
     {
-        qDebug() << ui->comboBox_SerialPorts->currentText();
-        m_Port.setPortName(ui->comboBox_SerialPorts->currentText());
-        m_Port.setBaudRate(256000);
-        m_Port.setDataBits(QSerialPort::Data8);
-        m_Port.setParity(QSerialPort::NoParity);
-        m_Port.setStopBits(QSerialPort::OneStop);
-        m_Port.open(QIODevice::ReadOnly);
-        m_comThread.start();
-
-        if (!m_Port.isOpen())
-        {
-            qDebug() << "Failed to open serial port.";
-            m_DeviceConnected = false;
-            ui->pushButton_Connect->setText("CONNECT");
-        }
-        else
-        {
-            qDebug() << "Serial Port Openned succesfully";
-            m_DeviceConnected = true;
-            ui->pushButton_Connect->setText("DISCONNECT");
-        }
+        m_comThread.stop();
+        m_DeviceConnected = false;
+        ui->pushButton_Connect->setText("CONNECT");
     }
+}
+
+void MainWindow::frameReceived(ld2410_frame frame)
+{
+    ui->label_MovingTargetDistance->setText(QString::number(frame.movement_target_distance_cm));
+    ui->label_movingTargetEnergy->setText(QString::number(frame.moving_target_energy));
+    ui->label_stationaryTargetDistance->setText(QString::number(frame.stationary_target_distance_cm));
+    ui->label_stationaryTargetEnergy->setText(QString::number(frame.stationary_target_energy));
 }
 

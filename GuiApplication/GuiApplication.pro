@@ -11,11 +11,14 @@ CONFIG += c++17
 SOURCES += \
     commthread.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    utils.cpp
 
 HEADERS += \
     commthread.h \
-    mainwindow.h
+    ld2410_frame.h \
+    mainwindow.h \
+    utils.h
 
 FORMS += \
     mainwindow.ui

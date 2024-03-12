@@ -2,9 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QSerialPortInfo>
-#include <QSerialPort>
 #include "commthread.h"
+#include "ld2410_frame.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -20,11 +19,11 @@ public:
 
 private slots:
     void on_pushButton_Connect_clicked();
+    void frameReceived(ld2410_frame frame);
 
 private:
     Ui::MainWindow *ui;
     bool m_DeviceConnected = false;
-    QSerialPort m_Port;
     CommThread m_comThread;
 };
 #endif // MAINWINDOW_H
